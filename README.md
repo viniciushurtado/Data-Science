@@ -1,2 +1,2 @@
 # Data-Science
-Introduction to Data Science class
+Introduction to Data Science - Final Project
