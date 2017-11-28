@@ -5,13 +5,13 @@
 #Description: Predict the presence of heart disease in the patients using 14 dataset attributes
 -----------------------------------------------------------------------------------------------
 
-#run lines first if want to change the seletion  
+####run lines first to load library and select: 1- Cleveland vs All Cities / 2- Feature selection or not
 library(utils)
 library(caret)
 allcities = 0 #cleveland = 0 or All_Citiies = 1 ?
-featureseletion = 1 #use greety feature selection?
-  
-####0.Attribute Information:----
+featureseletion = 0 #use greety feature selection?
+
+####Attribute Information:----
 #-- Only 14 used 
 #-- 1. #3  (age)      3 age: age in years       
 #-- 2. #4  (sex)      4 sex: sex (1 = male; 0 = female)       
@@ -27,73 +27,66 @@ featureseletion = 1 #use greety feature selection?
 #-- 12. #44 (ca)      44 ca: number of major vessels (0-3) colored by flourosopy  
 #-- 13. #51 (thal)    51 thal: 3 = normal; 6 = fixed defect; 7 = reversable defect  
 #-- 14. #58 (num)     (the predicted attribute)
+
   
 ####1.Dataset import----
-#cleveland import
-Cleveland = read.csv("processed.cleveland.csv",header=FALSE) #dataset impor
+Cleveland = read.csv("processed.cleveland.csv",header=FALSE) #cleveland dataset impor
 colnames(Cleveland) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
 Cleveland["num2"] = Cleveland["num"]
 Cleveland["num2"][Cleveland["num2"]>0] = 1 #create a new column with 0 (w/o heart disease) and 1 (w/ heart disease)
 
-#Hungarian import
-Hungarian = read.csv("processed.hungarian.csv",header=FALSE) #dataset impor
+Hungarian = read.csv("processed.hungarian.csv",header=FALSE) #hungarian dataset impor
 colnames(Hungarian) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
 Hungarian["num2"] = Hungarian["num"]
 Hungarian["num2"][Hungarian["num2"]>0] = 1 #create a new column with 0 (w/o heart disease) and 1 (w/ heart disease)
 
-#Switzerland import
-Switzerland = read.csv("processed.switzerland.csv",header=FALSE) #dataset impor
+Switzerland = read.csv("processed.switzerland.csv",header=FALSE) #switzerland dataset impor
 colnames(Switzerland) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
 Switzerland["num2"] = Switzerland["num"]
 Switzerland["num2"][Switzerland["num2"]>0] = 1 #create a new column with 0 (w/o heart disease) and 1 (w/ heart disease)
 
-#VA import
-VA = read.csv("processed.va.csv",header=FALSE) #dataset impor
+VA = read.csv("processed.va.csv",header=FALSE) #VA dataset impor
 colnames(VA) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
 VA["num2"] = VA["num"]
 VA["num2"][VA["num2"]>0] = 1 #create a new column with 0 (w/o heart disease) and 1 (w/ heart disease)
 
-#join 4 table + removing missing columns + remove NAs
-
-All_Cities = rbind(Cleveland,Hungarian,Switzerland,VA)
-All_Cities = All_Cities[,c(1:10,14:15)]
-All_Cities[All_Cities=="?"]=NA
+All_Cities = rbind(Cleveland,Hungarian,Switzerland,VA) #join 4 datasets
+All_Cities = All_Cities[,c(1:10,14:15)] #remove columns with mising data in some cities (11=slope,12=ca,13=thal)
+All_Cities[All_Cities=="?"]=NA #change "?" character found for NAs
 All_Cities=All_Cities[complete.cases(All_Cities),] #remove NAs
 
-####2.Greedy feature selection using rf (0 or 1)-------------
-#model prepare and baseline run
-if (allcities==0){
-    train_data = Cleveland[,c(1:13,15)]  
-    initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
-    #initialfeature=8
-    selectedfeatures=c(initialfeature,14) #define first column to predict column 15
-    } else {
-    train_data = All_Cities[,c(1:13,15)]  
-    initialfeature=sample(seq(1,10,1),1) #selecting an initial feature do run model
-    #initialfeature=8
-    selectedfeatures=c(initialfeature,12) #define first column to predict column 15
+####2.Greedy feature selection----
+if (allcities==0){ #if running for cleveland
+    train_data = Cleveland[,c(1:13,15)]  #exclude column num
+    #initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
+    initialfeature=1
+    selectedfeatures=c(initialfeature,14) #define first column to predict num2
+    } else { #if running for all cities
+    train_data = All_Cities[,c(1:10,12)] #exclude column num 
+    #initialfeature=sample(seq(1,10,1),1) #selecting an initial feature do run model
+    initialfeature=1
+    selectedfeatures=c(initialfeature,11) #define first column to predict num2
     } 
 old = Sys.time() #measure runtime
 possiblefeatures=seq(1,ncol(train_data)-1,1) #define other columns as possible features
 training=train_data[seq(1,nrow(train_data),2),selectedfeatures] #define the inicial training set
 testing=train_data[seq(2,nrow(train_data),2),selectedfeatures] #define the inicial testing set
-model = train(as.character(num2) ~.,training,method="rf") #train model
+model = train(as.character(num2) ~.,training,method="kknn") #train model
 predictedNum = predict(model,testing) #test model
 base_accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #define base acc
 (new = Sys.time() - old) #measure runtime
 print(new)
 print(base_accuracy)
 
-#features add loop
-for (i in 1:length(possiblefeatures)){
-  if (i!=14 & i!=initialfeature){ #exclude column "num" and initial feature from loop
+for (i in 1:length(possiblefeatures)){ #features add loop for all possible features
+  if (i!=initialfeature){ #exclude initial feature from loop
     training=train_data[seq(1,nrow(train_data),2),selectedfeatures] #define the inicial training set
     testing=train_data[seq(2,nrow(train_data),2),selectedfeatures] #define the inicial testing set
-    model = train(as.character(num2) ~.,training,method="rf") #train new model
+    model = train(as.character(num2) ~.,training,method="kknn") #train new model
     predictedNum = predict(model,testing) #test new model
     accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #measure new accuracy
     
@@ -103,29 +96,27 @@ for (i in 1:length(possiblefeatures)){
     }
   }
   (new = Sys.time() - old) #measure runtime
-  print (new)
   print(i)
   print(selectedfeatures)
   print(base_accuracy)
 }
-
-####3.Heart Disease Classification (0 or 1)----
-#step 1 - Select the data
-if (allcities==0){
-  if (featureseletion==0){
+####3.Heart Disease Classification----
+if (allcities==0){ #if cleveland, select data used to predict 
+  if (featureseletion==0){ #if not using feature selection, use all features
     train_data = Cleveland[,c(1:13,15)]  
-  } else {
+  } else { #if using feature selection, use selected features
     train_data = Cleveland[,c(selectedfeatures,15)]
   } 
 } 
 
-if (allcities==1){
-  if (featureseletion==0){
-    train_data = All_Cities[,c(1:13,15)]  
-  } else {
-    train_data = All_Cities[,c(selectedfeatures,15)]
+if (allcities==1){ #if All Cities, select data used to predict
+  if (featureseletion==0){ #if not using feature selection, use all features
+    train_data = All_Cities[,c(1:10,12)]  
+  } else { #if using feature selection, use selected features
+    train_data = All_Cities[,c(selectedfeatures,12)]
   } 
 } 
+
 #Step 2 - train the data
 train_control = trainControl(method="repeatedcv", number = 10, repeats = 3)
 m1 = train(as.character(num2)~.,data=train_data, trControl=train_control, method="rf")
