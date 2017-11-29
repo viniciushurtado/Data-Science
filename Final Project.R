@@ -38,7 +38,10 @@ Cleveland["num2"][Cleveland["num2"]>0] = 1 #create a new column with 0 (w/o hear
 Cleveland[Cleveland=="?"]=NA #change "?" character found for NAs
 Cleveland=Cleveland[complete.cases(Cleveland),] #remove NAs
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b29deb4fa9b970f1a40764ce9983f701c4e81e86
 Hungarian = read.csv("processed.hungarian.csv",header=FALSE) #hungarian dataset impor
 colnames(Hungarian) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
@@ -65,6 +68,7 @@ All_Cities=All_Cities[complete.cases(All_Cities),] #remove NAs
 ####2.Greedy feature selection----
 if (allcities==0){ #if running for cleveland
     train_data = Cleveland[,c(1:13,15)]  #exclude column num
+<<<<<<< HEAD
     initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
     #initialfeature=1
     selectedfeatures=c(initialfeature,14) #define first column to predict num2
@@ -72,13 +76,22 @@ if (allcities==0){ #if running for cleveland
     train_data = All_Cities[,c(1:10,12)] #exclude column num 
     initialfeature=sample(seq(1,10,1),1) #selecting an initial feature do run model
     #initialfeature=1
+=======
+    #initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
+    initialfeature=1
+    selectedfeatures=c(initialfeature,14) #define first column to predict num2
+    } else { #if running for all cities
+    train_data = All_Cities[,c(1:10,12)] #exclude column num 
+    #initialfeature=sample(seq(1,10,1),1) #selecting an initial feature do run model
+    initialfeature=1
+>>>>>>> b29deb4fa9b970f1a40764ce9983f701c4e81e86
     selectedfeatures=c(initialfeature,11) #define first column to predict num2
     } 
 old = Sys.time() #measure runtime
 possiblefeatures=seq(1,ncol(train_data)-1,1) #define other columns as possible features
 training=train_data[seq(1,nrow(train_data),2),selectedfeatures] #define the inicial training set
 testing=train_data[seq(2,nrow(train_data),2),selectedfeatures] #define the inicial testing set
-model = train(as.character(num2) ~.,training,method="rf") #train model
+model = train(as.character(num2) ~.,training,method="kknn") #train model
 predictedNum = predict(model,testing) #test model
 base_accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #define base acc
 (new = Sys.time() - old) #measure runtime
@@ -87,9 +100,15 @@ print(base_accuracy)
 
 for (i in 1:length(possiblefeatures)){ #features add loop for all possible features
   if (i!=initialfeature){ #exclude initial feature from loop
+<<<<<<< HEAD
     training=train_data[seq(1,nrow(train_data),2),c(selectedfeatures,possiblefeatures[i])] #define the inicial training set
     testing=train_data[seq(2,nrow(train_data),2),c(selectedfeatures,possiblefeatures[i])] #define the inicial testing set
     model = train(as.character(num2) ~.,training,method="rf") #train new model
+=======
+    training=train_data[seq(1,nrow(train_data),2),selectedfeatures] #define the inicial training set
+    testing=train_data[seq(2,nrow(train_data),2),selectedfeatures] #define the inicial testing set
+    model = train(as.character(num2) ~.,training,method="kknn") #train new model
+>>>>>>> b29deb4fa9b970f1a40764ce9983f701c4e81e86
     predictedNum = predict(model,testing) #test new model
     accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #measure new accuracy
     
