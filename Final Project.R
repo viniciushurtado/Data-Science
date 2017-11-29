@@ -135,4 +135,3 @@ bwplot(allModels,scales=list(relation="free"))
 ggplot(Cleveland,aes(num))+geom_bar() #count of Heart Disease Diagnosis (>0)
 ggplot(Cleveland,aes(as.character(num),thalach))+geom_boxplot() 
 ggplot(Cleveland,aes(as.character(num),oldpeak))+geom_boxplot()
-
