@@ -1,10 +1,9 @@
------------------------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------------------------
   #SCI 01 A - Introduction do Data Science - Team Heart
   #Team Member: Kishore and Vinicius
   #Dateset: Heart Disease Data Set (UCI Machine Learning Repository)
   #Description: Predict the presence of heart disease in the patients using 14 dataset attributes
------------------------------------------------------------------------------------------------
-  
+#-----------------------------------------------------------------------------------------------
 #Attribute Information:
 #-- Only 14 used 
 #-- 1. #3  (age)      3 age: age in years       
@@ -24,9 +23,9 @@
 
 library(utils)
 library(caret)
-featureselection = 1 # change to 1 to use feature selection
+featureselection = 0 # change to 1 to use feature selection
 
-#Step 1: Import Data
+#Step 1: Import Data----
 Cleveland = read.csv("processed.cleveland.csv",header=FALSE) #cleveland dataset impor
 colnames(Cleveland) = c("age","sex","cp","trestbps","chol","fbs",
                         "restecg","thalach","exang","oldpeak","slope","ca","thal","num") #rename columns
@@ -44,18 +43,21 @@ Cleveland$restecg = as.factor(as.character(Cleveland$restecg))
 Cleveland$exang = as.factor(as.character(Cleveland$exang))
 Cleveland$slope = as.factor(as.character(Cleveland$slope))
 
-#Step 2: Feature Selection
+#create a table with numeric variables (will be use for correlogram visualization)
+Correlogram = Cleveland[,c(1,4,5,8,10)]
+
+#Step 2: Feature Selection (if not running with feature selection, there is no need to run step 2)----
 
 old = Sys.time() #measure runtime
-initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
-#initialfeature=1
+#initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
+initialfeature=3 #I tried to used this one to start
 
 selectedfeatures=c(initialfeature,14) #define first column to predict num2
 possiblefeatures=seq(1,ncol(Cleveland)-1,1) #define other columns as possible features
 
 training=Cleveland[seq(1,nrow(Cleveland),2),selectedfeatures] #define the inicial training set
 testing=Cleveland[seq(2,nrow(Cleveland),2),selectedfeatures] #define the inicial testing set
-model = train(as.character(num2) ~.,training,method="rf") #train model
+model = train(as.character(num2) ~.,training,method="kknn") #train model
 
 predictedNum = predict(model,testing) #test model
 base_accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #define base acc
@@ -68,7 +70,7 @@ for (i in 1:length(possiblefeatures)){ #features add loop for all possible featu
   if (i!=initialfeature){ #exclude initial feature from loop
     training=Cleveland[seq(1,nrow(Cleveland),2),c(selectedfeatures,possiblefeatures[i])] #define the inicial training set
     testing=Cleveland[seq(2,nrow(Cleveland),2),c(selectedfeatures,possiblefeatures[i])] #define the inicial testing set
-    model = train(as.character(num2) ~.,training,method="rf") #train new model
+    model = train(as.character(num2) ~.,training,method="kknn") #train new model
     predictedNum = predict(model,testing) #test new model
     accuracy = sum(predictedNum==as.character(testing$num2))/nrow(testing) #measure new accuracy
     
@@ -83,7 +85,7 @@ for (i in 1:length(possiblefeatures)){ #features add loop for all possible featu
   print(base_accuracy)
 }
 
-#Step 3: Heart Disease Classification
+#Step 3: Heart Disease Classification----
 
 if (featureselection==1){ #if not using feature selection, use all features
     Cleveland = Cleveland[,c(selectedfeatures)]
@@ -93,13 +95,40 @@ train_control = trainControl(method="repeatedcv", number = 10, repeats = 3)
 m1 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="rf")
 m2 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="LogitBoost")
 m3 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="kknn")
-m4 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="nnet")
-m5 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="svmLinear")
+m4 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="nnet") #added this model
+m5 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="svmLinear") #added this model
 
 allModels=resamples(list(RandomForest=m1,LogitBoost=m2,KKNN=m3,NeuralNetwork=m4,SVM=m5)) #label the model to compare
 bwplot(allModels,scales=list(relation="free"))
 
-#Step 4: Dataset visualization - TBD----
-ggplot(Cleveland,aes(num))+geom_bar() #count of Heart Disease Diagnosis (>0)
-ggplot(Cleveland,aes(as.character(num),thalach))+geom_boxplot() 
-ggplot(Cleveland,aes(as.character(num),oldpeak))+geom_boxplot()
+#Step 4: Dataset visualization----
+ggplot(Cleveland,aes(num2))+geom_bar() #count of Heart Disease Diagnosis (>0)
+
+#boxplot for numeric variables vs num2: 1=age,4=trestbps,5=chol,8=thalach,10=oldpeak
+ggplot(Cleveland,aes(as.character(num2),age))+geom_boxplot() #visual relation to num2
+ggplot(Cleveland,aes(as.character(num2),trestbps))+geom_boxplot()
+ggplot(Cleveland,aes(as.character(num2),chol))+geom_boxplot()
+ggplot(Cleveland,aes(as.character(num2),thalach))+geom_boxplot() #visual relation to num2
+ggplot(Cleveland,aes(as.character(num2),oldpeak))+geom_boxplot() #visual relation to num2
+
+#Jitter plot for discrete variables vs num2: 2=sex,3=cp,6=fbs,7=restecg,9=exang,11=slope,12=ca,13=thal
+ggplot(Cleveland,aes(num2,sex))+geom_jitter() #visual relation to num2
+ggplot(Cleveland,aes(num2,cp))+geom_jitter() #visual relation to num2
+ggplot(Cleveland,aes(num2,fbs))+geom_jitter() 
+ggplot(Cleveland,aes(num2,restecg))+geom_jitter()
+ggplot(Cleveland,aes(num2,exang))+geom_jitter() #visual relation to num2
+ggplot(Cleveland,aes(num2,slope))+geom_jitter() #visual relation to num2
+ggplot(Cleveland,aes(num2,ca))+geom_jitter() #visual relation to num2
+ggplot(Cleveland,aes(num2,thal))+geom_jitter() #select
+
+#features that influence num2 based on visualization = 1,8,10,2,3,9,11,12,13
+#We could use those features to test the model and compare the result
+#in my tests with those features the result was better than greedy feature solution
+
+#Correlogram between numeric variables - to investigate if there is correlation between numeric variables
+library(corrplot)
+M = cor(Correlogram)
+corrplot(M, method = "circle")
+
+varImp(m4) #show variables importance for model
+m4$results #show model results
