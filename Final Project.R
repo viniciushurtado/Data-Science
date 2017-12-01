@@ -49,10 +49,6 @@ Correlogram = Cleveland[,c(1,4,5,8,10)]
 
 #Step 2: Best model Selection----
 
-if (featureselection==1){ #if not using feature selection, use all features
-    Cleveland = Cleveland[,c(selectedfeatures)]
-    } 
-
 train_control = trainControl(method="repeatedcv", number = 10, repeats = 3)
 m1 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="rf")
 m2 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method="LogitBoost")
@@ -62,12 +58,12 @@ m5 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method=
 
 allModels=resamples(list(RandomForest=m1,LogitBoost=m2,KKNN=m3,NeuralNetwork=m4,SVM=m5)) #label the model to compare
 bwplot(allModels,scales=list(relation="free"))
-varImp(m1)
-m1$results
-
+m1$results #show model results
+predictors(m1) #show selected features byt rf model
+varImp(m1) #show importance of each variable
 bestmodel = "rf" #input of the best model based on Step 2
 
-#Step 3: Greedy Feature Selection----
+#Step 3: Greedy Feature Selection (as RF select the features there is no need to run this part of the code)----
 
 old = Sys.time() #measure runtime
 initialfeature=sample(seq(1,13,1),1) #selecting an initial feature do run model
@@ -118,5 +114,8 @@ mbest$result
 M = cor(Correlogram)
 corrplot(M, method = "circle")
 
+#features visualization tests
 ggplot(Cleveland,aes(x=oldpeak,y=thalach,color=as.character(num2)))+geom_point(size=3)
+ggplot(filter(Cleveland, ca=="0.0"),aes(x=oldpeak,y=thalach,color=as.character(num2)))+geom_point(size=3)
+ggplot(filter(Cleveland, thal=="3.0"),aes(x=oldpeak,y=thalach,color=as.character(num2)))+geom_point(size=3)
 ggplot(filter(Cleveland, thal=="3.0", ca=="0.0"),aes(x=oldpeak,y=thalach,color=as.character(num2)))+geom_point(size=3)
