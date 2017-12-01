@@ -59,9 +59,8 @@ m5 = train(as.character(num2)~.,data=Cleveland, trControl=train_control, method=
 allModels=resamples(list(RandomForest=m1,LogitBoost=m2,KKNN=m3,NeuralNetwork=m4,SVM=m5)) #label the model to compare
 bwplot(allModels,scales=list(relation="free"))
 m1$results #show model results
-predictors(m1) #show selected features byt rf model
+predictors(m1) #show selected features by rf model
 varImp(m1) #show importance of each variable
-bestmodel = "rf" #input of the best model based on Step 2
 
 #Step 3: Dataset visualization----
 
