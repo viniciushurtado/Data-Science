@@ -17,7 +17,7 @@
 #-- 9. #38 (exang)    38 xang: exercise induced angina (1 = yes; 0 = no)
 #-- 10. #40 (oldpeak) 40 oldpeak = ST depression induced by exercise relative to rest
 #-- 11. #41 (slope)   41 slope: the slope of the peak exercise ST segment (1: upsloping, 2: flat, 3: downsloping)
-#-- 12. #44 (ca)      44 ca: number of major vessels (0-3) colored by flourosopy
+#-- 12. #44 (ca)      44 ca: number of major vessels (0-3) colored by fluoroscopy
 #-- 13. #51 (thal)    51 thal: 3 = normal; 6 = fixed defect; 7 = reversable defect  
 #-- 14. #58 (num)     (the predicted attribute)
 
@@ -67,7 +67,7 @@ varImp(m1) #show importance of each variable
 #Step 3: Dataset visualization----
 
 #Renaming factor levels for plots
-levels(Cleveland$sex) = c("female","male","")
+levels(Cleveland$sex) = c("women","men","")
 levels(Cleveland$cp) = c("typical angina","atypical angina","non-anginal pain","asymptomatic")
 levels(Cleveland$sex) = c("female","male","")
 levels(Cleveland$num) = c("No disease","Disease")
@@ -79,7 +79,7 @@ corrplot(M, method = "circle")
 
 #Features importance visualization
 plot_varImp = varImp(m1, scale = FALSE)
-ggplot(plot_varImp, top = 10)+theme_bw()+ggtitle("Features relevence for random forrest model")+theme(plot.title = element_text(hjust = 0.5))
+ggplot(plot_varImp, top = 10)+theme_bw()+ggtitle("Features relevence - Top 10")+theme(plot.title = element_text(hjust = 0.5))
 
 #Disease vs features visualization
 
@@ -103,6 +103,6 @@ mosaicplot(Cleveland$sex ~ Cleveland$num, main = "Heart Disease by Gender",
 mosaicplot(Cleveland$cp ~ Cleveland$num, main = "Heart Disease by Chest Pain Type", 
            xlab = "Chest Pain Type", ylab = "Heart disease", color = TRUE, shade = FALSE)
 
-mosaicplot(Cleveland$ca ~ Cleveland$num, main = "Heart Disease by number of major vessels colored by flourosopy",
-           xlab = "number of major vessels colored by flourosopy", ylab = "Heart disease", 
+mosaicplot(Cleveland$ca ~ Cleveland$num, main = "Heart Disease by number of major vessels colored by fluoroscopy",
+           xlab = "number of major vessels colored by fluoroscopy", ylab = "Heart disease", 
            color = TRUE, shade = FALSE)
