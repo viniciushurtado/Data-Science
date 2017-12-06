@@ -25,7 +25,6 @@
 library(utils)
 library(caret)
 library(corrplot)
-library(dplyr)
 
 Cleveland = read.csv("processed.cleveland.csv",header=FALSE) #cleveland dataset impor
 colnames(Cleveland) = c("age","sex","cp","trestbps","chol","fbs",
@@ -43,9 +42,8 @@ Cleveland$num = as.factor(as.character(Cleveland$num))
 
 Cleveland[Cleveland=="?"]=NA #change "?" character found for NAs
 Cleveland=Cleveland[complete.cases(Cleveland),] #remove NAs
-Cleveland = Cleveland[,c(1:13,15)]  #exclude column num
 
-#create a table with numeric variables (will be use for correlogram visualization)
+#create a table with numeric variables (will be used for correlogram visualization)
 Correlogram = Cleveland[,c(1,4,5,8,10)]
 
 #Step 2: Best model Selection----
@@ -69,21 +67,19 @@ varImp(m1) #show importance of each variable
 #Renaming factor levels for plots
 levels(Cleveland$sex) = c("women","men","")
 levels(Cleveland$cp) = c("typical angina","atypical angina","non-anginal pain","asymptomatic")
-levels(Cleveland$sex) = c("female","male","")
+levels(Cleveland$sex) = c("women","men","")
 levels(Cleveland$num) = c("No disease","Disease")
 levels(Cleveland$thal) = c("","normal","fixed defect","reversable defect")
 
 #Correlogram between numeric variables - to investigate if there is correlation between numeric variables
 M = cor(Correlogram)
-corrplot(M, method = "circle")
+corrplot(M, method = "circle", type = "upper", order = "hclust")
 
 #Features importance visualization
 plot_varImp = varImp(m1, scale = FALSE)
 ggplot(plot_varImp, top = 10)+theme_bw()+ggtitle("Features relevence - Top 10")+theme(plot.title = element_text(hjust = 0.5))
 
 #Disease vs features visualization
-
-#I've created some plots using boxplot and heatmap based on feature importance. Take a look to see if it make sens. we can use some of those.
 
 ggplot(Cleveland,aes(num,age))+geom_boxplot()+theme_bw()+xlab("Heart Disease")+
   ggtitle("Heart Disease by Age")+theme(plot.title = element_text(hjust = 0.5))
@@ -92,16 +88,8 @@ ggplot(Cleveland,aes(num,thalach))+geom_boxplot()+theme_bw()+xlab("Heart Disease
   ylab("Maximum heart rate achieved")+ggtitle("Heart Disease by Maximum heart rate achieved")+
   theme(plot.title = element_text(hjust = 0.5))
 
-ggplot(Cleveland,aes(num,oldpeak))+geom_boxplot()+theme_bw()+xlab("Heart Disease")+
-  ylab("ST depression induced by exercise relative to rest")+
-  ggtitle("Heart Disease by ST depression induced by exercise relative to rest")+
-  theme(plot.title = element_text(hjust = 0.5)) #I have no ideia what this feature means but there is a correlation between disease and feature
-
 mosaicplot(Cleveland$sex ~ Cleveland$num, main = "Heart Disease by Gender", 
            xlab = "Gender", ylab = "Heart disease", color = TRUE, shade = FALSE)
-
-mosaicplot(Cleveland$cp ~ Cleveland$num, main = "Heart Disease by Chest Pain Type", 
-           xlab = "Chest Pain Type", ylab = "Heart disease", color = TRUE, shade = FALSE)
 
 mosaicplot(Cleveland$ca ~ Cleveland$num, main = "Heart Disease by number of major vessels colored by fluoroscopy",
            xlab = "number of major vessels colored by fluoroscopy", ylab = "Heart disease", 
